@@ -4,6 +4,7 @@ from flask_restful import marshal, marshal_with
 from flask_httpauth import HTTPBasicAuth
 from webargs import fields, validate
 from webargs.flaskparser import use_args
+from datetime import datetime
 
 app = Flask(__name__, static_url_path="")
 api = Api(app)
@@ -132,7 +133,8 @@ class ContactListAPI(Resource):
         super(ContactListAPI, self).__init__()
 
     def get(self):
-        return {'contacts': [marshal(contact, contact_fields) for contact in contacts]}
+        # return {'contacts': [marshal(contact, contact_fields) for contact in contacts]}
+        return {'contacts': [contact for contact in contacts]}
 
     @use_args(contact_fields, location="json")
     def post(self, args):
