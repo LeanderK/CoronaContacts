@@ -5,6 +5,7 @@ from flask_httpauth import HTTPBasicAuth
 from webargs import fields, validate
 from webargs.flaskparser import use_args
 from datetime import datetime
+import json
 
 app = Flask(__name__, static_url_path="")
 api = Api(app)
@@ -29,7 +30,7 @@ example_contact = {
     # personal info
     'name': "Hans",
     'surname': "Wurst",
-    'birthdate': "1939-05-08",
+    'birthdate': datetime.fromisoformat("1939-05-08"),
     'street': "Kleine Straße 4",
     'zipcode': 00000,
     'place': "Nirgendwo",
@@ -126,6 +127,22 @@ contact_fields = {
     'quarantine_monitoring_results': fields.List(fields.Nested(quarantine_log_fields)),
 }
 
+def to_json_hack(inp):
+    if type(inp) is dict:
+        t = {}
+        for k,v in inp.items():
+            t[k] = to_json_hack(v)
+        return t
+    if type(inp) is list:
+        t = []
+        for i in inp:
+            t.append(to_json_hack(i))
+        return t
+    if isinstance(inp, datetime):
+        return str(inp)
+    else:
+        return inp
+
 class ContactListAPI(Resource):
     #decorators = [auth.login_required]
 
@@ -134,14 +151,15 @@ class ContactListAPI(Resource):
 
     def get(self):
         # return {'contacts': [marshal(contact, contact_fields) for contact in contacts]}
-        return {'contacts': [contact for contact in contacts]}
+        #return {'contacts': [json.dumps(contact, default=str) for contact in contacts]}
+        return to_json_hack({'contacts': contacts})
 
     @use_args(contact_fields, location="json")
     def post(self, args):
         contact = dict(args)
         contact['id'] = contacts[-1]['id'] + 1 if len(contacts) > 0 else 1,
         contacts.append(contact)
-        return {'contacts': [marshal(contact, contact_fields) for contact in contacts]}, 201
+        return to_json_hack({'contacts': contacts}), 201
 
 class ContactAPI(Resource):
     #decorators = [auth.login_required]
@@ -153,7 +171,7 @@ class ContactAPI(Resource):
         contact = [contact for contact in contacts if contact['id'] == id]
         if len(contact) == 0:
             abort(404)
-        return {'contact': marshal(contact[0], contact_fields)}
+        return to_json_hack({'contact': contact[0]})
 
     @use_args(contact_fields, location="json")
     def put(self, id, args):
@@ -164,7 +182,7 @@ class ContactAPI(Resource):
         for k, v in args.items():
             if v is not None:
                 contact[k] = v
-        return {'contact': marshal(contact, contact_fields)}
+        return to_json_hack({'contact': contact})
 
     def delete(self, id):
         contact = [contact for contact in contacts if contact['id'] == id]
@@ -185,9 +203,9 @@ class QuarantineLogsAPI(Resource):
             abort(404)
         contact = contact[0]
         if not 'quarantine_monitoring_results' in contact:
-            return {'quarantine_monitoring_results': marshal({}, quarantine_log_fields)}
+            return {'quarantine_monitoring_results': {}}
         else:
-            return {'quarantine_monitoring_results': marshal(contact['quarantine_monitoring_results'], quarantine_log_fields)}
+            return to_json_hack({'quarantine_monitoring_results': contact['quarantine_monitoring_results']})
 
     @use_args(quarantine_log_fields, location="json")
     def post(self, id, args):
@@ -201,7 +219,7 @@ class QuarantineLogsAPI(Resource):
         existing = contact['quarantine_monitoring_results']
         args['id'] = existing[-1]['id'] + 1 if len(existing) > 0 else 1,
         contact['quarantine_monitoring_results'].append(args)
-        return {'quarantine_monitoring_results': marshal(contact['quarantine_monitoring_results'], quarantine_log_fields)}, 201
+        return to_json_hack({'quarantine_monitoring_results': contact['quarantine_monitoring_results']}), 201
 
 class QuarantineLogAPI(Resource):
     #decorators = [auth.login_required]
@@ -219,7 +237,7 @@ class QuarantineLogAPI(Resource):
         log = [log for log in contacts['quarantine_monitoring_results'] if log['id'] == log_id]
         if len(log) == 0:
             abort(404)
-        return {'quarantine_monitoring_results': marshal(log, quarantine_log_fields)}
+        return to_json_hack({'quarantine_monitoring_result': log})
 
     @use_args(quarantine_log_fields, location="json")
     def put(self, id, log_id, args):
@@ -236,7 +254,7 @@ class QuarantineLogAPI(Resource):
         for k, v in args.items():
             if v is not None:
                 log[k] = v
-        return {'logs': marshal(log, quarantine_log_fields)}
+        return {'quarantine_monitoring_result': to_json_hack(log)}
 
     def delete(self, id, log_id):
         contact = [contact for contact in contacts if contact['id'] == id]
