@@ -14,7 +14,11 @@
 
 
   	<form>
+  		<div class="col-10">
+	<div class="form-group">
+
   	  <h2>Personendaten</h2>
+
 	  <div class="form-row">
 	    <div class="col-5">
 	      <label>Nachname</label>
@@ -47,8 +51,8 @@
 	  </div>
 	  <div class="form-row">
 		<div class="col-4">
-	      <label>Geburtsdatum</label>
-	      <input type="text" class="form-control" placeholder="Geburtsdatum">
+	  	<label for="date-input">Geburtstag</label>
+	  	<input class="form-control" type="date" value="2020-03-22" id="Geburtstag">
 	    </div>
 	    <div class="col-3">
 	    	<label>Alter</label>
@@ -65,31 +69,40 @@
 	    	<input type="text" class="form-control" placeholder="Name Bezirk, kreisfreie Stadt oder Landkreis">
 	    </div>
 	  </div>
-	  <br>
-	  <h2>Bitte geben Sie an, in welcher Form Sie Kontakt zu einer nachweislichen oder vermutlichen Infektionsquelle hatten:</h2>
+	  </div>
+	</div>
 
-	  <div class="form-row">
-	    <div class="col-10">
+	  <div class="form-group">
+	  	<div class="col-10">
+	  <h2>Bitte geben Sie an, in welcher Form Sie Kontakt zu einer nachweislichen oder vermutlichen Infektionsquelle hatten:</h2>
+	</div>
+
+	  <div class="col-10">
+
 	    	<label>Name der Person</label>
 	    	<input type="text" class="form-control" placeholder="Max Mustermann">
-	    </div>
+
 	  </div>
-	  <div class="form-row">
+
 	      <div class="col-10">
 	    	<label>Name der Lokalität</label>
 	    	<input type="text" class="form-control" placeholder="The Club-XY">
 	    </div>
-	  </div>
-	  <div class="form-row">
+
+
 	      <div class="col-10">
 	    	<label>Name des Risikogebiets</label>
 	    	<input type="text" class="form-control" placeholder="Wuhan/China">
-	    </div>
+
 	  </div>
-	  <br>
+	  </div>
+	  <div class="form-group">
+	  <div class="col-10">
 	  <h2>Bitte kreuzen Sie an, zu welcher Kategorie Sie sich selbst einstufen würden und begründen Sie kurz:</h2>
+	</div>
 
 	  <div class="form-check">
+	  	<div class="col-10">
 		  <input class="form-check-input" type="radio" name="Kategorien" id="Kategorie1" value="Kategorie1" checked>
 		  <label class="form-check-label" for="Kategorie1">
 		    Mind. 15min. zugewandter Kontakt zu einem
@@ -98,8 +111,10 @@
 			sowie Speichelkontakt
 		  </label>
 	  </div>
+	  </div>
 	  <br>
 	  <div class="form-check">
+	  	<div class="col-10">
 		  <input class="form-check-input" type="radio" name="Kategorien" id="Kategorie2" value="Kategorie2">
 		  <label class="form-check-label" for="Kategorie2">
 		    Zugewandter Kontakt zu einem bestätigten Fall
@@ -109,19 +124,140 @@
 			bei mehr als 2m Abstand
 		  </label>
 	  </div>
+	  </div>
 	  <br>
 	  <div class="form-check">
+	  	<div class="col-10">
 		  <input class="form-check-input" type="radio" name="Kategorien" id="Kategorie3" value="Kategorie3">
 		  <label class="form-check-label" for="Kategorie3">
 		    Medizinisches Personal mit Schutzausrüstung
 			bei weniger als 2m Abstand
 		  </label>
 	  </div>
+	  </div>
+	</div>
+	<div class="form-group">
 	  <br>
+	  <div class="col-10">
 	  <h2>Leiden Sie unter grippalen Symptomen, welche für eine Coronavirus-Infektion charakteristisch
 		sind? Bitte beschreiben Sie diese und kreuzen den Schweregrad Ihrer Symptomatik an (0 – 10).</h2>
+	</div>
+	  <div class="form-check">
+	  	<div class="col-10">
+	    <input class="form-check-input" type="checkbox" id="Checkbox1" value="Husten">
+  		<label class="form-check-label" for="Checkbox1">Husten</label>
+  	  </div>
+  	  </div>
+
+  	  <div class="form-check">
+  	  	<div class="col-10">
+	    <input class="form-check-input" type="checkbox" id="Checkbox2" value="Schnupfen">
+  		<label class="form-check-label" for="Checkbox2">Schnupfen</label>
+	  </div>
+	  </div>
+  	  <div class="form-check">
+  	  	<div class="col-10">
+	    <input class="form-check-input" type="checkbox" id="Checkbox3" value="Fieber">
+  		<label class="form-check-label" for="Checkbox3">Fieber</label>
+  	  </div>
+  	  </div>
+
+  	  <div class="form-check">
+  	  	<div class="col-10">
+	    <input class="form-check-input" type="checkbox" id="Checkbox4" value="Halsschmerzen">
+  		<label class="form-check-label" for="Checkbox4">Halsschmerzen</label>
+	  </div>
+	  </div>
+	  <div class="form-check">
+	  	<div class="col-10">
+	    <input class="form-check-input" type="checkbox" id="Checkbox5" value="Keine">
+  		<label class="form-check-label" for="Checkbox5">Keine</label>
+	  </div>
+	  </div>
+	  <br>
+	  <div class="form-check">
+	  	<div class="col-10">
+	  		<label class="form-check-label" for="Checkbox5">Beschreibung</label>
+	  		<textarea class="form-control" aria-label="With textarea">Beschreibung...</textarea>
+
+	  </div>
+	  </div>
 
 
+	  <br>
+	  <div class="form-check">
+	  	<div class="col-10">
+	  	<label for="date-input">Symptombeginn / Tag</label>
+	  	<input class="form-control" type="date" value="2020-03-22" id="date-input">
+	  	</div>
+	  	</div>
+	  </div>
+
+	  <br>
+	  <div class="form-row">
+	  	<div class="col-1">
+	  	</div>
+	  	<div class="col-8">
+	  		<label for="customRange2">Intensität der Symptome (0-10)</label>
+	  		<input type="range" class="custom-range" min="0" max="10" id="customRange2">
+	  	</div>
+	  	<div class="col-1">
+	  	</div>
+	  </div>
+	  </div>
+
+	  <div class="col-10">
+	  <h2>
+	  	Zählen Sie sich zu folgenden Risikogruppen?
+	  </h2>
+	  </div>
+	  <div class="form-check">
+	  	<div class="col-10">
+	    <input class="form-check-input" type="checkbox" id="Checkbox" value="Herzpatienten">
+  		<label class="form-check-label" for="Checkbox">Herzpatienten (z.B. koronare Herzerkrankung)</label>
+  	  </div>
+  	  </div>
+  	  <div class="form-check">
+  	  	<div class="col-10">
+	    <input class="form-check-input" type="checkbox" id="Checkbox" value="Lungenpatienten">
+  		<label class="form-check-label" for="Checkbox">Lungenpatienten (z. B. Asthma, chronische Bronchitis)</label>
+	  </div>
+	  </div>
+	  	  <div class="form-check">
+	  	  	<div class="col-10">
+	    <input class="form-check-input" type="checkbox" id="CheckboxHerz" value="Lebererkrankungen">
+  		<label class="form-check-label" for="CheckboxHerz">Patienten mit chronischen Lebererkrankungen</label>
+  	  </div>
+  	  </div>
+  	  <div class="form-check">
+  	  	<div class="col-10">
+	    <input class="form-check-input" type="checkbox" id="Checkbox" value="Diabetes">
+  		<label class="form-check-label" for="Checkbox">Patienten mit Diabetes mellitus (Zuckerkrankheit)</label>
+	  </div>
+	  </div>
+	  	  <div class="form-check">
+	  	  	<div class="col-10">
+	    <input class="form-check-input" type="checkbox" id="CheckboxHerz" value="Krebserkrankung">
+  		<label class="form-check-label" for="CheckboxHerz">Patienten mit einer Krebserkrankung</label>
+  	  </div>
+  	  </div>
+  	  <div class="form-check">
+  	  	<div class="col-10">
+	    <input class="form-check-input" type="checkbox" id="Checkbox2" value="Lungenpatienten">
+  		<label class="form-check-label" for="Checkbox2">Patienten mit geschwächtem Immunsystem</label>
+	  </div>
+	  </div>
+<br>
+<br>
+
+	<div class="form-row">
+		<div class="col-1">
+		</div>
+		<div class="col-9">
+		
+	  		<button type="submit" class="btn btn-primary">Abschicken</button>
+	 	</div>
+	 	</div>
 	</form>
 
     <!-- Optional JavaScript -->
