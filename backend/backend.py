@@ -1,6 +1,9 @@
 from flask import Flask, jsonify, abort, make_response
-from flask_restful import Api, Resource, reqparse, fields, marshal
+from flask_restful import Api, Resource, reqparse#, fields, marshal
+from flask_restful import marshal, marshal_with
 from flask_httpauth import HTTPBasicAuth
+from webargs import fields, validate
+from webargs.flaskparser import use_args
 
 app = Flask(__name__, static_url_path="")
 api = Api(app)
@@ -20,131 +23,235 @@ def unauthorized():
     # auth dialog
     return make_response(jsonify({'message': 'Unauthorized access'}), 403)
 
-
-contacts = []
-
-contacts_fields = {
-    'name': fields.String,
-    'surname': fields.String,
-    'birthdate': fields.DateTime,
-    'street': fields.String,
-    'address': fields.String,
-    'zipcode': fields.String,
-    'place': fields.String,
-    'telephones': fields.List(fields.String),
-    'comment_availability': fields.String,
-    'comment_language': fields.String,
-    'exposing_case_id': fields.Integer,
-    'exposing_case_comment': fields.Integer,
-    'status_case': fields.Integer, #Status Falltyp
-    'file_number': fields.String, #Aktenzeichen
-    'symptons_begin': fields.DateTime,
-    'infectious_begin': fields.DateTime, #anfang infektionszeitraum
-    'infectious_end': fields.DateTime, #ende infektionszeitraum
-    'supervision_begin': fields.DateTime, #anfang beobachtungszeitrum
-    'supervision_end': fields.DateTime, #ende beobachtungszeitrum
-    'is_concat_person': fields.Boolean,
-    'state': fields.String,
-    'reporting_district': fields.String, #meldelandkreis
-    'contagious_contact_date': fields.DateTime,
-    'contagious_contact_comment': fields.String,
-    'gender': fields.String,
-    'contact_person_category': fields.Integer,
-    'measures': fields.List(fields.Nested({'measure': fields.String, 'date': fields.DateTime})),
-    'sampling_type': fields.String,
-    
-    'description': fields.String,
-    'done': fields.Boolean,
-    'uri': fields.Url('task')
-}
-
-tasks = [
-    {
-        'id': 1,
-        'title': u'Buy groceries',
-        'description': u'Milk, Cheese, Pizza, Fruit, Tylenol',
-        'done': False
+example_contact = {
+    'id': 1,
+    # personal info
+    'name': "Hans",
+    'surname': "Wurst",
+    'birthdate': "1939-05-08",
+    'street': "Kleine Straße 4",
+    'zipcode': 00000,
+    'place': "Nirgendwo",
+    'telephone_numbers': ["099/987654321"],
+    'risk_group': {
+        'heart': True,
+        'lung': False,
+        'chronic_liver': False,
+        'diabetis': True,
+        'cancer': False,
+        'weak_immunsystem': False,
     },
-    {
-        'id': 2,
-        'title': u'Learn Python',
-        'description': u'Need to find a good Python tutorial on the web',
-        'done': False
-    }
-]
-
-task_fields = {
-    'title': fields.String,
-    'description': fields.String,
-    'done': fields.Boolean,
-    'uri': fields.Url('task')
+    'comment_availability': "nachmittags",
+    #case information
+    'exposing_case_comment': "unbekannt",
+    'exposing_case_place': "Ausland",
+    'status_case': 1, #Status Falltyp
+    'symptons_begin': "2020-01-15",
+    'infectious_begin': "2020-01-13", #anfang infektionszeitraum
+    'infectious_end': "2020-01-25", #ende infektionszeitraum
+    'is_contact_person': False,
+    'state': "VZ",
+    'reporting_district': "Kreis A", #meldelandkreis
+    'gender': "männlich",
+    'measures': [{
+        'measure': "auf Isolierstation",
+        'date': "2020-01-16"
+    }]
 }
 
+contacts = [example_contact]
 
-class TaskListAPI(Resource):
-    decorators = [auth.login_required]
+quarantine_log_fields = {
+    'id': fields.Integer(),
+    'temperature_morning': fields.Integer(required=True),
+    'temperature_evening': fields.Integer(required=True),
+    'log': fields.String(required=True),
+    'cough': fields.Boolean(required=True),
+    'head_cold': fields.Boolean(required=True),
+    'fever': fields.Boolean(required=True),
+    'sore_throat': fields.Boolean(required=True),
+    'date': fields.DateTime(format='iso8601', required=True)
+}
+
+risk_group_fields = {
+    'heart': fields.Boolean(required=True),
+    'lung': fields.Boolean(required=True),
+    'chronic_liver': fields.Boolean(required=True),
+    'diabetis': fields.Boolean(required=True),
+    'cancer': fields.Boolean(required=True),
+    'weak_immunsystem': fields.Boolean(required=True),
+}
+
+contact_fields = {
+    'id': fields.Integer(),
+    # personal info
+    'name': fields.String(required=True),
+    'surname': fields.String(required=True),
+    'birthdate': fields.DateTime(format='iso8601'),
+    'street': fields.String(),
+    'address': fields.String(),
+    'zipcode': fields.Integer(),
+    'email': fields.String(),
+    'place': fields.String(),
+    'telephone_numbers': fields.List(fields.String),
+    'risk_group': fields.Nested(risk_group_fields),
+    'comment_availability': fields.String(),
+    'comment_language': fields.String(),
+    'gender': fields.String(),
+    #case information
+    'exposing_case_id': fields.Integer(),
+    'exposing_case_comment': fields.Integer(),
+    'exposing_case_place': fields.String(),
+    'status_case': fields.Integer(), #Status Falltyp
+    'file_number': fields.String(), #Aktenzeichen
+    'symptons_begin': fields.DateTime(format='iso8601'),
+    'infectious_begin': fields.DateTime(format='iso8601'), #anfang infektionszeitraum
+    'infectious_end': fields.DateTime(format='iso8601'), #ende infektionszeitraum
+    'supervision_begin': fields.DateTime(format='iso8601'), #anfang beobachtungszeitrum
+    'supervision_end': fields.DateTime(format='iso8601'), #ende beobachtungszeitrum
+    'is_contact_person': fields.Boolean(),
+    'state': fields.String(), #Bundesland
+    'reporting_district': fields.String(), #meldelandkreis
+    'contagious_contact_date': fields.DateTime(format='iso8601'),
+    'contagious_contact_comment': fields.String(),
+    'contact_person_category': fields.Integer(),
+    'measures': fields.List(fields.Nested({'measure': fields.String(), 'date': fields.DateTime(format='iso8601')})),
+    'sampling_type': fields.String(),
+    'sampling_date': fields.DateTime(format='iso8601'),
+    'sampling_result': fields.Boolean(),
+    'observation_states': fields.List(fields.Nested({'state': fields.String(), 'date': fields.DateTime(format='iso8601')})),
+    'comment': fields.String(),
+    #monitoring
+    'quarantine_monitoring_results': fields.List(fields.Nested(quarantine_log_fields)),
+}
+
+class ContactListAPI(Resource):
+    #decorators = [auth.login_required]
 
     def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('title', type=str, required=True,
-                                   help='No task title provided',
-                                   location='json')
-        self.reqparse.add_argument('description', type=str, default="",
-                                   location='json')
-        super(TaskListAPI, self).__init__()
+        super(ContactListAPI, self).__init__()
 
     def get(self):
-        return {'tasks': [marshal(task, task_fields) for task in tasks]}
+        return {'contacts': [marshal(contact, contact_fields) for contact in contacts]}
 
-    def post(self):
-        args = self.reqparse.parse_args()
-        task = {
-            'id': tasks[-1]['id'] + 1 if len(tasks) > 0 else 1,
-            'title': args['title'],
-            'description': args['description'],
-            'done': False
-        }
-        tasks.append(task)
-        return {'task': marshal(task, task_fields)}, 201
+    @use_args(contact_fields, location="json")
+    def post(self, args):
+        contact = dict(args)
+        contact['id'] = contacts[-1]['id'] + 1 if len(contacts) > 0 else 1,
+        contacts.append(contact)
+        return {'contacts': [marshal(contact, contact_fields) for contact in contacts]}, 201
 
-
-class TaskAPI(Resource):
-    decorators = [auth.login_required]
+class ContactAPI(Resource):
+    #decorators = [auth.login_required]
 
     def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('title', type=str, location='json')
-        self.reqparse.add_argument('description', type=str, location='json')
-        self.reqparse.add_argument('done', type=bool, location='json')
-        super(TaskAPI, self).__init__()
+        super(ContactAPI, self).__init__()
 
     def get(self, id):
-        task = [task for task in tasks if task['id'] == id]
-        if len(task) == 0:
+        contact = [contact for contact in contacts if contact['id'] == id]
+        if len(contact) == 0:
             abort(404)
-        return {'task': marshal(task[0], task_fields)}
+        return {'contact': marshal(contact[0], contact_fields)}
 
-    def put(self, id):
-        task = [task for task in tasks if task['id'] == id]
-        if len(task) == 0:
+    @use_args(contact_fields, location="json")
+    def put(self, id, args):
+        contact = [contact for contact in contacts if contact['id'] == id]
+        if len(contact) == 0:
             abort(404)
-        task = task[0]
-        args = self.reqparse.parse_args()
+        contact = contact[0]
         for k, v in args.items():
             if v is not None:
-                task[k] = v
-        return {'task': marshal(task, task_fields)}
+                contact[k] = v
+        return {'contact': marshal(contact, contact_fields)}
 
     def delete(self, id):
-        task = [task for task in tasks if task['id'] == id]
-        if len(task) == 0:
+        contact = [contact for contact in contacts if contact['id'] == id]
+        if len(contact) == 0:
             abort(404)
-        tasks.remove(task[0])
+        contacts.remove(contact[0])
         return {'result': True}
 
+class QuarantineLogsAPI(Resource):
+    #decorators = [auth.login_required]
 
-api.add_resource(TaskListAPI, '/todo/api/v1.0/tasks', endpoint='tasks')
-api.add_resource(TaskAPI, '/todo/api/v1.0/tasks/<int:id>', endpoint='task')
+    def __init__(self):
+        super(QuarantineLogAPI, self).__init__()
+
+    def get(self, id):
+        contact = [contact for contact in contacts if contact['id'] == id]
+        if len(contact) == 0:
+            abort(404)
+        contact = contact[0]
+        if not 'quarantine_monitoring_results' in contact:
+            return {'quarantine_monitoring_results': marshal({}, quarantine_log_fields)}
+        else:
+            return {'quarantine_monitoring_results': marshal(contact['quarantine_monitoring_results'], quarantine_log_fields)}
+
+    @use_args(quarantine_log_fields, location="json")
+    def post(self, id, args):
+        args = dict(args)
+        contact = [contact for contact in contacts if contact['id'] == id]
+        if len(contact) == 0:
+            abort(404)
+        contact = contact[0]
+        if not 'quarantine_monitoring_results' in contact:
+            contact['quarantine_monitoring_results'] = []
+        existing = contact['quarantine_monitoring_results']
+        args['id'] = existing[-1]['id'] + 1 if len(existing) > 0 else 1,
+        contact['quarantine_monitoring_results'].append(args)
+        return {'quarantine_monitoring_results': marshal(contact['quarantine_monitoring_results'], quarantine_log_fields)}, 201
+
+class QuarantineLogAPI(Resource):
+    #decorators = [auth.login_required]
+
+    def __init__(self):
+        super(QuarantineLogAPI, self).__init__()
+
+    def get(self, id, log_id):
+        contact = [contact for contact in contacts if contact['id'] == id]
+        if len(contact) == 0:
+            abort(404)
+        contact = contact[0]
+        if not 'quarantine_monitoring_results' in contact:
+            abort(404)
+        log = [log for log in contacts['quarantine_monitoring_results'] if log['id'] == log_id]
+        if len(log) == 0:
+            abort(404)
+        return {'quarantine_monitoring_results': marshal(log, quarantine_log_fields)}
+
+    @use_args(quarantine_log_fields, location="json")
+    def put(self, id, log_id, args):
+        args = dict(args)
+        contact = [contact for contact in contacts if contact['id'] == id]
+        if len(contact) == 0:
+            abort(404)
+        contact = contact[0]
+        if not 'quarantine_monitoring_results' in contact:
+            abort(404)
+        log = [log for log in contacts['quarantine_monitoring_results'] if log['id'] == log_id]
+        if len(log) == 0:
+            abort(404)
+        for k, v in args.items():
+            if v is not None:
+                log[k] = v
+        return {'logs': marshal(log, quarantine_log_fields)}
+
+    def delete(self, id, log_id):
+        contact = [contact for contact in contacts if contact['id'] == id]
+        if len(contact) == 0:
+            abort(404)
+        if not 'quarantine_monitoring_results' in contact:
+            abort(404)
+        log = [log for log in contacts['quarantine_monitoring_results'] if log['id'] == log_id]
+        if len(log) == 0:
+            abort(404)
+        contacts['quarantine_monitoring_results'].remove(log[0])
+        return {'result': True}
+
+api.add_resource(ContactListAPI, '/api/v1.0/contacts', endpoint='contacts')
+api.add_resource(ContactAPI, '/api/v1.0/contacts/<int:id>', endpoint='contact')
+api.add_resource(QuarantineLogsAPI, '/api/v1.0/contacts/<int:id>/logs', endpoint='logs')
+api.add_resource(QuarantineLogAPI, '/api/v1.0/contacts/<int:id>/logs/<int:log_id>', endpoint='log')
 
 
 if __name__ == '__main__':
